@@ -1,0 +1,201 @@
+---
+title: "Make the movie data"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+#use the following package 
+library("dplyr")
+library("rvest")
+library("stringr")
+library("makedummies")
+```
+
+
+```{r}
+##Web Scraping 
+
+#function that will webscrape the data from https://m.the-numbers.com and reuturn the data
+#the argument is companyurl
+make_data=function(companyurl){
+        #read the html of that company url 
+        company=read_html(companyurl)
+        #extract the table 
+        history=company %>%
+                html_nodes("table") %>%
+                html_table()
+        #choose just table
+        history=history[[1]]
+        #delete unappropriate part
+        history=history[-(nrow(history)-2):-(nrow(history)),]
+        #web scrape the film urls
+        url=company %>%
+                html_nodes("#page_filling_chart b a") %>%
+                html_attr("href")
+        #make the complete url
+        ur1=paste0("https://m.the-numbers.com",url)
+        i=1
+        for(url in url1){
+                #read the html of each film
+                movie=read_html(url)
+                #extract the information of each film
+                a=movie%>%
+                        html_nodes("h2+ .table-responsive td")%>%
+                        html_text()
+                #logic whether table has following words
+                ind1=str_detect(a, pattern = "Creative")
+                ind2=str_detect(a, pattern = "MPAA")
+                ind3=str_detect(a, pattern = "Method")
+                if(length(a)!=0){
+                        #return index which has TRUE or following word
+                        q=which(ind2==TRUE)
+                        r=which(ind3==TRUE)
+                        s=which(a=="Genre:")
+                        t=which(a=="Running Time:")
+                        u=which(a=="Keywords:")
+                        v=which(a=="Franchise:")
+                        w=which(a=="Production Companies:")
+                        x=which(a=="Production Countries:")
+                        y=which(a=="Source:")
+                        z=which(ind1==TRUE)
+                        #If the variable is 0 length, make the value NA. Otherwise, insert the value to this variable.
+                        history[i,"MPAA_Rating"]=ifelse(length(q)==0,NA,a[q+1])
+                        history[i,"Production_Method"]=ifelse(length(r)==0,NA,a[r+1])
+                        history[i,"Genre"]=ifelse(length(s)==0,NA,a[s+1])
+                        history[i,"Running_Time"]=ifelse(length(t)==0,NA,a[t+1])
+                        history[i,"Keywords"]=ifelse(length(u)==0,NA,a[u+1])
+                        history[i,"Franchise"]=ifelse(length(v)==0,NA,a[v+1])
+                        history[i,"Production_Companies"]=ifelse(length(w)==0,NA,a[w+1])
+                        history[i,"Production_Countries"]=ifelse(length(x)==0,NA,a[x+1])
+                        history[i,"Source"]=ifelse(length(y)==0,NA,a[y+1])
+                        history[i,"Creative_Type"]=ifelse(length(z)==0,NA,a[z+1])
+                        i=i+1   
+                }
+        }
+       return(history) 
+}
+```
+
+
+```{r}
+#read the html of the companieslist
+companylist=read_html("https://m.the-numbers.com/movies/production-companies")
+#extract the companies url 
+companies_url=companylist%>%
+        html_nodes("#production_companies_overview a")%>%
+        html_attr("href")%>%
+        paste0("https://m.the-numbers.com",.)
+```
+
+```{r}
+#make the empty dataframe, which will be combined with other data
+movie=data.frame()
+#iterate the make_data function for 500 companies
+for(i in 1:500){
+        movie_sub=make_data(companies_url[i])
+        movie=rbind(movie,movie_sub)
+}
+```
+
+
+```{r}
+#See the data
+movie
+```
+
+```{r}
+##Data Cleaning 
+
+#delete the duplication of observations
+movie=movie[!duplicated(movie$Title),]
+
+#extract the PG-13|R|G|NC-17|PG|Not Rated from the MPAA_Raing values because there are some description about why this is rated but this is not useful
+movie$MPAA_Rating=str_replace(movie$MPAA_Rating,pattern="^(PG-13|R|G|NC-17|PG|Not[[:space:]]Rated).*\n*.*",replacement="\\1")
+
+#make the categorical variables into factor
+movie$Source=factor(movie$Source)
+movie$Creative_Type=factor(movie$Creative_Type)
+movie$Genre=factor(movie$Genre)
+movie$MPAA_Rating=factor(movie$MPAA_Rating)
+movie$Production_Method=factor(movie$Production_Method)
+
+#make the Trailer variables dummy 
+movie$Trailer=ifelse(movie$Trailer=="Play",1,0)
+
+#remove the minutes from the Running_Time variable and change it into numeric
+movie$Running_Time=as.numeric(str_replace(movie$Running_Time,pattern = "([:digit:])[:space:]minutes",replacement = "\\1"))
+
+#make the Franchise dummy variable
+movie$Franchise=ifelse(is.na(movie$Franchise),0,1)
+
+#Make the variables dummy variables about whether this movie is produced by the following companies or not
+movie$warner=ifelse(str_detect(movie$Production_Companies,pattern = "Warner Bros."),1,0)
+movie$Columbia=ifelse(str_detect(movie$Production_Companies,pattern = "Columbia Pictures"),1,0)
+movie$Universal_Pictures=ifelse(str_detect(movie$Production_Companies,pattern = "Universal Pictures"),1,0)
+movie$Walt_Disney_Pictures=ifelse(str_detect(movie$Production_Companies,pattern = "Walt Disney Pictures"),1,0)
+movie$Marvel_Studios=ifelse(str_detect(movie$Production_Companies,pattern = "Marvel Studios"),1,0)
+movie$Paramount_Pictures=ifelse(str_detect(movie$Production_Companies,pattern = "Paramount Pictures"),1,0)
+movie$Century_Fox=ifelse(str_detect(movie$Production_Companies,pattern = "20th Century Fox"),1,0)
+movie$Relativity_Media=ifelse(str_detect(movie$Production_Companies,pattern = "Relativity Media"),1,0)
+movie$DreamWorks_Pictures=ifelse(str_detect(movie$Production_Companies,pattern = "DreamWorks Pictures"),1,0)
+movie$New_Line_Cinema=ifelse(str_detect(movie$Production_Companies,pattern = "New Line Cinema"),1,0)
+movie$Dune_Entertainment=ifelse(str_detect(movie$Production_Companies,pattern = "Dune Entertainment"),1,0)
+movie$Canal_Plus=ifelse(str_detect(movie$Production_Companies,pattern = "Canal Plus"),1,0)
+movie$Regency_Enterprises=ifelse(str_detect(movie$Production_Companies,pattern = "Regency Enterprises"),1,0)
+movie$Lionsgate=ifelse(str_detect(movie$Production_Companies,pattern = "Lionsgate"),1,0)
+movie$BBC_Films=ifelse(str_detect(movie$Production_Companies,pattern = "BBC Films"),1,0)
+movie$StudioCanal=ifelse(str_detect(movie$Production_Companies,pattern = "StudioCanal"),1,0)
+movie$Working_Title_Films=ifelse(str_detect(movie$Production_Companies,pattern = "Working Title Films"),1,0)
+movie$Blumhouse=ifelse(str_detect(movie$Production_Companies,pattern = "Blumhouse"),1,0)
+movie$BFI=ifelse(str_detect(movie$Production_Companies,pattern = "BFI"),1,0)
+movie$France=ifelse(str_detect(movie$Production_Companies,pattern = "France 2 Cinema"),1,0)
+movie$Cine_Plus=ifelse(str_detect(movie$Production_Companies,pattern = "Cine Plus"),1,0)
+movie$Participant_Media=ifelse(str_detect(movie$Production_Companies,pattern = "Participant Media"),1,0)
+movie$Village_Roadshow_Productions=ifelse(str_detect(movie$Production_Companies,pattern = "Village Roadshow Productions"),1,0)
+movie$Metro_Goldwyn_Mayer_Pictures=ifelse(str_detect(movie$Production_Companies,pattern = "Metro-Goldwyn-Mayer Pictures"),1,0)
+
+#Extract the year from the ReleaseDate variable and make it into numeric
+movie$Year=as.numeric(str_replace(movie$ReleaseDate,pattern = ".*,[:space:]([:digit:]{4})$",replacement = "\\1"))
+
+#Remove the , and $ from WorldwideBox Office
+sale_sub=str_replace(movie$`WorldwideBox Office`,pattern = "\\$",replacement = "")
+movie$`WorldwideBox Office`=as.numeric(str_replace_all(sale_sub,pattern = ",",replacement = ""))
+#Remove the , and $ from ProductionBudget
+budget_sub=str_replace(movie$ProductionBudget,pattern = "\\$",replacement = "")
+movie$ProductionBudget=as.numeric(str_replace_all(budget_sub,pattern = ",",replacement = ""))
+#Remove the , and $ from OpeningWeekend
+opening_sub=str_replace(movie$OpeningWeekend,pattern = "\\$",replacement = "")
+movie$OpeningWeekend=as.numeric(str_replace_all(opening_sub,pattern = ",",replacement = ""))
+#Remove the , and $ from DomesticBox Office
+domestic_sub=str_replace(movie$`DomesticBox Office`,pattern = "\\$",replacement = "")
+movie$`DomesticBox Office`=as.numeric(str_replace_all(domestic_sub,pattern = ",",replacement = ""))
+#Extract month from ReleaseDate and change it into factor
+x=str_replace(movie$ReleaseDate,pattern = "^([[:alpha:]]{3}).*",replacement = "\\1")
+movie$month=str_replace(x,pattern = "^([[:digit:]]*)",replacement = "")
+movie$month=ifelse(movie$month=="",NA,movie$month)
+movie$month=factor(movie$month)
+```
+
+```{r}
+##save the data as "movie.csv"
+write.csv(movie,"movie.csv")
+```
+
+
+```{r}
+##make dummy variables
+movie_final=makedummies(movie,basal_level = FALSE)
+```
+
+```{r}
+##save data as "movie_dummy.csv"
+write.csv(movie_final,"movie_dummy.csv")
+```
+
+
+
