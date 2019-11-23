@@ -1,7 +1,7 @@
 # Group Project Repository
 
 All text and code files related to the group project should be stored inside
-this repository.
+this repository. You can see our apps from https://taigahasegawa.shinyapps.io/Movie_Analysis/
 
 ## Overview
 
