@@ -1,0 +1,173 @@
+---
+title: "Hey you, movie"
+subtitle: "STAT 385 FA2018 - Scorpion"
+abstract: |
+          | This is the abstract. It should probably be at most about five 
+          | sentences. The abstract should briefly explain what you are doing,
+          | why you are doing it, and what you hope to gain from it.
+          | Reading only the abstract, the reader should have a good idea 
+          | about what to expect from the rest of the document.
+date: "November 13, 2018"
+author:
+  - Taiga Hasegawa
+  - Zhuofeng Lei
+  - Seung ji Nam
+bibliography: bibliography.bib
+
+---
+
+```{r set-options, include = FALSE}
+# Sets default chunk options
+knitr::opts_chunk$set(
+  # Figures/Images will be centered
+  fig.align = "center", 
+  # Code will not be displayed unless `echo = TRUE` is set for a chunk
+  echo = FALSE,
+  # Messages are suppressed
+  message = FALSE,
+  # Warnings are suppressed
+  warning = FALSE
+)
+```
+
+```{r install-and-load-packages, include = FALSE}
+# All packages needed should be loaded in this chunk
+pkg_list = c('knitr', 'kableExtra', 'magrittr')
+
+# Determine what packages are NOT installed already.
+to_install_pkgs = pkg_list[!(pkg_list %in% installed.packages()[,"Package"])]
+
+# Install the missing packages
+if(length(to_install_pkgs)) {
+  install.packages(to_install_pkgs, repos = "https://cloud.r-project.org")
+}
+
+# Load all packages
+sapply(pkg_list, require, character.only = TRUE)
+```
+
+<!-- Force a new page -->
+\newpage
+
+# Instructions
+
+This document will walk you through some of the necessary steps of formatting
+your report. Do not mistake the length of this document as an example of the 
+length of a proper report. Length is not important. Communicating your idea 
+in a concise but complete manner is important. The goal of the proposal is to capture details found in Figure \@ref(fig:data-science-workflow).
+
+```{r data-science-workflow, out.width = "250px", fig.cap = "Data science workflow emphasized in R4DS. The photo has been reduced using chunk size options.", fig.pos = 'H'}
+knitr::include_graphics("images/data-science.png")
+```
+
+
+# Introduction
+
+Our topic is movies. From many websites such as warner bros., Universal pictures, and Coumbia pictures, we did web scrapings. It includes such as `domestic sales`, `worldwide sales`, and `opening weekend sales`. These websites are dominant companies that distribute the films, which the data are quite influential. There are variables that give information about sales and budget;  `production budget`, `opening weekend sales`, `domestic sales`, `world wide sales`. Also, there are variablest that give specific information about the movies; `running time`, `genre`, `production countries`, and `production method`. We can analyze the sale between `genre` and sales, impact of `opening weekend sales` and `worldwide sales`, `production countries` and `world wide sales`. Based on these simple anylzation, we are going to construct how sales of movies are influenced by various aspects.  
+
+```{r}
+movie <- read.csv("/cloud/project/proposal/movie-2.csv")
+head(movie)
+```
+
+Also, the raw dataset we get from web-scraping has 1251 observations and 12 variables. 
+
+# Related Work
+
+We got the idea from 'Predicting Movie Sales from Blogger Sentiment' by Gilad Mishne and Natalie Glance. It helps to understand what factors are helpful to predict and understand the movie sales. We could think unexpected factors that have impacts on movies sales. 
+Also we wil consider the information on Youtube elated to the movies such as the number of views of trailers on Youtube, the number of comments on Youtube, and so on. 
+Also, predictive analytics for movies from ['storyfit'](http://storyfit.com)
+
+
+# Methods
+
+- We used and we are going to use `rvest` to do web scraping of the website(https://m.the-numbers.com/movies/production-company/Warner-Bros). 
+To show how we did web scraping shortly, it's like this below. 
+```{r eval=F}
+library("rvest")
+history=function(companyurl){
+  download.file(companyurl, destfile = "company.html", quiet=TRUE)
+  company=read_html("company.html")
+  history=company %>%
+    html_nodes("table") %>%
+    html_table()
+  history=history[[1]]
+  Genre=rep(NA,dim(history)[1])
+  Running_Time=rep(NA,dim(history)[1])
+  Keywords=rep(NA,dim(history)[1])
+  Franchise=rep(NA,dim(history)[1])
+  history=cbind(history,Genre)
+  history=cbind(history,Running_Time)
+  history=cbind(history,Keywords)
+  history=cbind(history,Franchise)  
+  return(history)
+}
+```
+
+- `dplyr` and `stringr` will be used to do data cleaning and we will handle the NAs and split the keys variables into a few variable that we need. Especially with `stringr`, we will use it to analyze text varaible such as 3D and themes. 
+- `ggplot2` will be used to visualize the data and this will show the difference of sales between genres and companies. 
+- `shiny` will be used to find the change of sales as one or some variables change. 
+
+# Feasibility
+
+First, by December 3th, all three are going to clean the data `movie-2.csv` and other csv files into one tidy data. Then, by December second week, we will do various kinds of anlyzation on our data and get the information. For the variables that are not integer, we will try other way to analyze it in this process. Analyzing all the variables and the relationship among variables, from December thrid week, with these variables, we will construct a predictable structure in movies and we will predict the sales recently released movies. 
+
+# Conclusion
+
+Movie is really influential and huge media in this age and it's complicated what factors will impact and result the sales of movies and them impact of movies. There would already be many trials to predict the success of movies, and sales or ratings of movies. We want to understand not only the impact of the movies' details but also the impacts of SNS or other kind of media such as Youtube on movies' sales, such as we can analyze the relationship of view count of trailer and the sales. 
+
+\newpage
+
+# Appendix
+
+- ![sketch.jpg](/cloud/project/proposal/sketch.jpg)
+
+## Formatting Notes
+
+
+### `R` Code and `rmarkdown`
+
+An important part of the report is communicating results in a well-formatted manner. This template document should help a lot with that task. Some thoughts on using `R` and `rmarkdown`:
+
+- Chunks are set to not echo by default in this document.
+- Consider naming your chunks. This will be necessary for referencing chunks 
+  that create tables or figures.
+- One chunk per table or figure!
+- Tables should be created using `knitr::kable()`.
+- Consider using `kableExtra()` for better presentation of tables. (Examples in this document.)
+- Caption all figures and tables. (Examples in this document.)
+- Use the `img/` sub-directory for any external images.
+- Use the `data/` sub-directory for any external data.
+
+### LaTeX
+
+While you will not directly work with LaTeX, you may wish to have some details
+on working with TeX can be found in 
+[this guide by UIUC Mathematics Professor A.J. Hildebrand ](https://faculty.math.illinois.edu/~hildebr/tex/latex-start.html).
+
+With `rmarkdown`, LaTeX can be used inline, like this, $a ^ 2 + b ^ 2 = c ^ 2$,
+or using display mode,
+
+$$
+\mathbb{E}_{X, Y} \left[ (Y - f(X)) ^ 2 \right] = \mathbb{E}_{X} \mathbb{E}_{Y \mid X} \left[ ( Y - f(X) ) ^ 2 \mid X = x \right]
+$$
+
+You **are** required to use BibTeX for references. With BibTeX, we could 
+reference the `rmarkdown` paper [@allaire2015rmarkdown] or the tidy data paper.
+[@wickham2014tidy] Some details can be found in the 
+[`bookdown` book](https://bookdown.org/yihui/bookdown/citations.html). Also,
+hint, [Google Scholar](https://scholar.google.com/) makes obtaining BibTeX 
+reference extremely easy. For more details, see the next section...
+
+<!-- Force a new page for references -->
+\newpage
+
+# References
+
+- Parkhe, Viraj, and Bhaskar Biswas. "Sentiment Analysis of Movie Reviews: Finding Most Important Movie Aspects Using Driving Factors." Soft Computing 20, no. 9 (2015): 3373-379. 
+- Jo, Jung-Tae, and Sanghyunchoi. "Sentiment Analysis of Movie Review for Predicting Movie Rating." Management & Information Systems Review 34, no. 3 (2015): 161-77. 
+- 
+- Gilad Mishne, and Natalie Glance. "Predicting Movie Sales from Blogger Sentiment" 
+
+<!-- Remove the newpage break when the above text is no longer useful -->
+\newpage

@@ -1,0 +1,227 @@
+---
+title: "Data_visu"
+author: "Seung ji Nam"
+date: '2018 12 17 '
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#read movie data
+movie=read.csv("Movie_Analysis/movie.csv",stringsAsFactors = FALSE,check.names=FALSE)
+movie
+#change the row name
+row.names(movie)=movie$X
+#delete the first column
+movie=movie[,-1]
+#delete the unuseful and unappropriate variables
+movie=movie[,c(-1,-2,-4,-5,-12,-14,-15)]
+#delete the observations that has NA values
+movie=na.omit(movie)
+movie_dummy <- read.csv("Movie_Analysis/movie_dummy.csv")
+```
+
+```{r eval=F, echo=F}
+# Dummy Variable of Production Countries
+movie_dummy <- read.csv("Movie_Analysis/movie_dummy.csv")
+
+Production_Countries.US <- as.numeric(movie_dummy$Production_Countries=="United States")
+Production_Countries.NonUS <- as.numeric(movie_dummy$Production_Countries!="United States")
+Production_Countries_dummy <- cbind(Production_Countries.US,Production_Countries.NonUS)
+
+movie_dummy<- cbind(movie_dummy, Production_Countries_dummy)
+write.csv(movie_dummy, file="movie_dummy.csv")
+```
+```{r echo=F, eval=F}
+movie_dummy <- movie_dummy[,-c(110:113)]
+write.csv(movie_dummy, file="movie_dummy.csv")
+```
+
+
+```{r}
+# Linear Regression about Budget
+fit1 <- lm(`WorldwideBox.Office`~ ProductionBudget + OpeningWeekend + DomesticBox.Office , data=movie_dummy)
+summary(fit1)
+coef
+```
+Among varaibles related to budgets, `DomesticBox.Office`is the best variable to explain `WorldwideBox.Office`. Also, `DomesticBox.Office`, `OpeningWeekend`,`ProductionBudget` are all have signifcantly high correlation. Therefore, I used only `DomesticBox.Office`, not `OpeningWeekend` and `ProductionBudget`. 
+
+```{r}
+library(ggplot2)
+# geom_point between DomesticBox.Office and WorldwideBox.office
+ggplot(data=movie_dummy,aes(x=DomesticBox.Office, y=WorldwideBox.Office)) +
+  geom_point(size=0.2)
+
+# limit the range of x
+ggplot(data=movie_dummy,aes(x=DomesticBox.Office, y=WorldwideBox.Office)) +
+  geom_point(size=0.2) +
+  xlim(0,5.0e+08) 
+
+# facet_wrap by Production countries 
+ggplot(data=movie_dummy,aes(x=DomesticBox.Office, y=WorldwideBox.Office)) +
+  geom_point(size=0.2,na.rm=F) +
+  facet_wrap(~ Production_Countries.US)
+
+# face_wrap + limit the range of x
+ggplot(data=movie_dummy,aes(x=DomesticBox.Office, y=WorldwideBox.Office)) +
+  geom_point(size=0.2,na.rm=F) +
+  facet_wrap(~ Production_Countries.US)+
+  xlim(0,5.0e+08) 
+```
+
+```{r}
+# correlation among variables related to money
+library(corrplot)
+pr.cor<- cor(na.omit(movie_d[,4:7]));pr.cor
+corrplot(pr.cor,method="number",type='lower')
+
+```
+
+
+
+```{r}
+# geom_bar between month and Worldwide Box office in time order 
+library(ggplot2)
+month_data <-data.frame(month=factor(movie$month,levels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")),'WorldwideBox Office'=movie$'WorldwideBox Office')
+
+ggplot(data=month_data, aes(x=month, y=WorldwideBox.Office)) +
+ geom_boxplot()
+```
+```{r}
+
+ggplot(data=movie_dummy, aes(x=Year, y=WorldwideBox.Office)) +
+  geom_point(size=0.4,na.rm=T) 
+  
+ggplot(data=movie_dummy, aes(x=Year, y=WorldwideBox.Office)) +
+  geom_jitter(size=0.3,na.rm=T) +
+  xlim(1990,2021)
+
+```
+`month` semms to have some kind of trend related to `WorldwideBox.office`. There seems to be a trend that `WorldwideBox.office` gets higher from the beginning of the year to the end of the year. 
+
+```{r}
+# WorldwideBox.office and OpeningWeekend by trailer
+ggplot(data=movie_dummy, aes(x=OpeningWeekend, y=WorldwideBox.Office)) +
+   geom_point(size=0.3,na.rm=T) +
+  facet_wrap(~ Trailer)+
+  xlim(0,1e+08)
+
+```
+Whether there is a `Trailer` or not, it seems `OpeningWeekend` and `WorldwideBox.Office` is related. 
+
+
+```{r}
+table(movie$Genre)
+ggplot(data=movie, aes(Genre)) +
+  geom_bar()
+# Let's put Black Comedy, Concert/Performance, Documentary, Musical, Western to etc. 
+genre_data <- movie$Genre
+genre_data[genre_data %in% c('Black Comedy','Concert/Performance','Documentary','Musical','Western')]<- "Etc"
+
+ggplot(data=as.data.frame(genre_data),aes(genre_data)) +
+  geom_bar()
+```
+Among `Genre`, Drama, Action, Adventure, Comedy are the most prevalent. 
+
+```{r}
+Year_data<- movie$Year
+Year_data[Year_data %in% c(1930:2000)] <- "1930~2000"
+Year_data[Year_data %in% c(2001:2010)]<- "2001~2010"
+Year_data[Year_data %in% c(2011:2020)]<- "2011~2020"
+
+genrefit <- as.data.frame(cbind(movie$`WorldwideBox Office`, genre_data, "Year"=Year_data))
+genre.fit <- lm(movie$`WorldwideBox Office`~ genre_data, data=genrefit)
+summary(genre.fit)
+```
+All genres are quite significant. 
+```{r}
+ggplot(data=genrefit, aes(x=genre_data, y=movie$`WorldwideBox Office`)) +
+ geom_bar(stat="identity")
+
+ggplot(data=genrefit, aes(x=genre_data,y=movie$`WorldwideBox Office`)) +
+  geom_bar(stat="identity") +
+  facet_wrap(~Year) +
+  theme(axis.text.x=element_text(angle=60,hjust=1))
+
+```
+
+Adventure and Action `Genre` are significant related to `WorldwideBox Office`. 
+
+```{r}
+# Production company
+product_com <- as.data.frame(table(movie_dummy$Production_Companies))
+product_com$Var1[product_com$Freq >=20]
+Companies<- as.data.frame(cbind(movie_dummy$WorldwideBox.Office, movie_dummy$Production_Companies))
+
+```
+```{r}
+# About the storyline of movie (Creative_Type, genre, Source)
+ggplot(data=movie,aes(x=Creative_Type, y=`WorldwideBox Office`)) +
+  geom_bar(stat="identity")
+```
+```{r}
+movie_source <- movie[movie$Source==c("Based on Comic/Graphic Novel","Based on Factual Book/Article","Based on Fiction Book/Short Story","Based on Folk Tale/Legend/Fairytale","Based on Real Life Events","Based on TV","Original Screenplay","Remake"),]
+
+
+ggplot(data=movie_source,aes(Source))+
+  geom_bar() +
+  theme(axis.text.x=element_text(angle=60,hjust=1))
+
+ggplot(data=movie_source, aes(x=Source, y=`WorldwideBox Office`)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x = element_text(angle=60,hjust=1))
+
+ggplot(data=movie_source,aes(x=Genre,y=`WorldwideBox Office`)) +
+  geom_bar(aes(fill=Source),stat="identity") +
+  theme(axis.text.x = element_text(angle=60,hjust=1))
+  
+
+ggplot(data=movie_source, aes(x=Genre, y=`WorldwideBox Office`)) +
+ geom_bar(stat="identity") +
+  theme(axis.text.x = element_text(angle=60,hjust=1)) +
+  facet_wrap(~ Source)
+```
+Based on Book/ Short Story, and 'Original Screenplay' movies had high `WorldwideBox Office`. 
+
+```{r}
+genrefit <- as.data.frame(cbind(movie$`WorldwideBox Office`,genre_data))
+genre.fit <- lm(movie$`WorldwideBox Office`~ genre_data, data=genrefit)
+summary(genre.fit)
+```
+```{r}
+ggplot(data=genrefit, aes(x=genre_data, y=movie$`WorldwideBox Office`)) +
+ geom_bar(stat="identity")
+
+```
+```{r}
+# Production Companies that have at least 10 movies
+
+log <- movie_dummy$Production_Companies %in% c("Warner Bros.","Regency Enterprises","Working Title Films","Columbia Pictures","Castle Rock Entertainment","Walt Disney Pictures","Participant Media","Universal Pictures","20th Century Fox","Gold Circle Films","Blumhouse","DreamWorks Animation","Marvel Studios","Touchstone","Pictures","Twentieth Century Fox","Amblin Entertainment","DreamWorks Pictures","Jersey Films","Metro-Goldwyn-Mayer Pictures","Davis Entertainment","Tri-Star Pictures","Lucasfilm","Revolution Studios","Silver Pictures","Eon Productions, United Artists","Lakeshore Entertainment","Village Roadshow Productions","Walt Disney Animation Studios")
+movie_comp <- cbind(movie_dummy[log,], "Production_Method"=movie[log,"Production_Method"] )
+
+
+ggplot(data=movie_comp,aes(x=Production_Companies, y=WorldwideBox.Office)) +
+         geom_bar(stat="identity", aes(fill=Production_Method)) +
+          theme(axis.text.x = element_text(angle=60,hjust=1)) 
+
+ggplot(data=movie, aes(Production_Method)) +
+  geom_bar()
+         
+```
+Because most of `Production_Method` is Live Action, `Production_Method` doesn't matter much to `WorldwideBox.Office`. 
+
+```{r}
+a
+movie_dummy$Production_Companies %in% c("Warner Bros.","Regency Enterprises","Working Title Films","Columbia Pictures","Castle Rock Entertainment","Walt Disney Pictures","Participant Media","Universal Pictures","20th Century Fox","Gold Circle Films","Blumhouse","DreamWorks Animation","Marvel Studios","Touchstone","Pictures","Twentieth Century Fox","Amblin Entertainment","DreamWorks Pictures","Jersey Films","Metro-Goldwyn-Mayer Pictures","Davis Entertainment","Tri-Star Pictures","Lucasfilm","Revolution Studios","Silver Pictures","Eon Productions, United Artists","Lakeshore Entertainment","Village Roadshow Productions","Walt Disney Animation Studios")
+```
+
+```{r}
+ movie
+        
+  
+```
+

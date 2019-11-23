@@ -1,0 +1,12 @@
+name: Movie_Analysis
+title: Movie_Analysis
+username:
+account: taigahasegawa
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1515506
+bundleId: 2611681
+url: https://taigahasegawa.shinyapps.io/Movie_Analysis/
+when: 1574511580.0102
+asMultiple: FALSE
+asStatic: FALSE

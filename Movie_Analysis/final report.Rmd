@@ -1,0 +1,120 @@
+---
+title: "A Look Inside The Box...Office"
+author:
+- Team Scorpion
+- Taiga Hasegawa (taigah2)
+- Zhuofeng Lei (zlei5)
+- Seung ji Nam (sjnam2)
+date: "December 17, 2018"
+subtitle: STAT 385 FA2018
+
+---
+
+```{r set-options, include = FALSE}
+# Sets default chunk options
+knitr::opts_chunk$set(
+  # Figures/Images will be centered
+  fig.align = "center", 
+  # Code will not be displayed unless `echo = TRUE` is set for a chunk
+  echo = FALSE,
+  # Messages are suppressed
+  message = FALSE,
+  # Warnings are suppressed
+  warning = FALSE
+)
+```
+
+```{r install-and-load-packages, include = FALSE}
+# All packages needed should be loaded in this chunk
+pkg_list = c('knitr', 'kableExtra', 'magrittr')
+
+# Determine what packages are NOT installed already.
+to_install_pkgs = pkg_list[!(pkg_list %in% installed.packages()[,"Package"])]
+
+# Install the missing packages
+if(length(to_install_pkgs)) {
+  install.packages(to_install_pkgs, repos = "https://cloud.r-project.org")
+}
+
+# Load all packages
+sapply(pkg_list, require, character.only = TRUE)
+```
+
+<!-- Force a new page -->
+\newpage
+
+# Introduction
+
+Ever turned on netflix and don't know what to watch? The goal of this project is to analyze what factors affect how well a movie does in the box office. As consumers, we do not want to spend our hard earned money and time on garbage movies. In addition, people working in the movie industries also want their movie to be successful to earn more money, fame, awards, and recognition. In order to achieve our goal, we webscraped movie data from <https://m.the-numbers.com/movies/> which provided us with a variety of variables such as title, domestic profits, worldwide profits, genre, production method, production country, etc. With so many different variables, we created different types of visualizations to look for trends and patterns of different predictor variables with worldwide box office earnings (predicted variable). We also created a linear regression model with the predicted variable and all other predictor variables to analyze which predictor variables are significant. Our idea matches with the course's focus on statistical programming because we used the data to create a variety of visuals and applied different statistical techniques such as the bptest and qqplot.  
+
+# Related Work
+
+We got the idea from ‘Predicting Movie Sales from Blogger Sentiment’ by Gilad Mishne and Natalie Glance. In that study, they applied sentimental analysis methods to weblog data results. Their study concluded that a positive sentiment is a better predictor for movie success when applied to a limited context prior to the movies release. Thus, it helps to understand what factors are helpful to predict and understand the movie sales. 
+
+Other related works include:
+Shiny apps: 
+The name of the related work is "Movie explorer". This app enables us to find the movies based on the criterias that users select. The criteria includes minimum number of reviews, year released, minimum number of Oscar wins, dollars at Box Office, genre, director name contains, and cast name contains. This app shows the scatter plot based on these criterias with x-axis and y-axis that users select. The scatter plot is interactive with users, so that when we put the pointer on the dot, it shows the movie's name. This is the link to this application <https://shiny.rstudio.com/gallery/movie-explorer.html>. 
+
+Kaggle: 
+There is the kernel about the movie dataset. The dataset contains metadata for all 45,000 movies listed in the Full MovieLens Dataset. The dataset consists of movies released on or before July 2017. Data points include cast, crew, plot keywords, budget, revenue, posters, release dates, languages, production companies, countries, TMDB vote counts and vote averages. This dataset also has files containing 26 million ratings from 270,000 users for all 45,000 movies. Ratings are on a scale of 1-5 and have been obtained from the official GroupLens website. Most of the kagglers made the film recommendation engine, using this datasets. The link to this kernel is <https://www.kaggle.com/rounakbanik/the-movies-dataset/kernels>.
+
+These two related works mainly focused on how to recommend movies to users. We also created a different movie recommendation feature. In addition, we analyzed the factors that affect the worldwide box office. This is one of the unique points of our project. Another unique feature of our project is our data. It was retrieved by webscraping a website. Our dataset don't have the reviews of movies because our main focus is to predict world wide box office. Instead our project have variables like production method, source, creative type, MPAA_rating, whether the trailer is broadcasted or not and whether the movie is franchise or not. 
+
+Finally our statistical analysis is original. We fit this dataset using a linear regression model. We believed that the impact of predictors like genre, trailer, production method will change over time. As a result, we enabled users to change the time period so that they can examine see the change of coefficients of each predictor.
+
+# Methods
+
+We used the following methods in each part. 
+
+**1. Collecting data**   
+We webscraped this website <https://m.the-numbers.com> to collect the data. For webscraping we used the `rvest` package and extracted url, table and text from the website. We also used `dyplr` to filter and tidy the data.   
+
+**2. Data Cleaning**   
+The data we webscraped was unstructured and needed to be cleaned. First, because we had many duplications in the dataset, we had to delete the duplications. Second, some variables had unuseful comments and puncts in their columns. So we had to use regular expressions to remove unuseful comments and puncts from the observations by using `stringr`. Finally, some variables had a lot of information in one column. For example, `Release date` had `year` and `month` variables in one column and `Production companies` variable had many names of companies in one column. This is why we had to extract the data that we only wanted by using a `string`" package.   
+
+**3. Data Visualization **   
+We used "ggplot2" package to make different visuals. Sometimes we used subsets to get data that we only need. In addition we used "wordcloud" to see which words appears lot in keyword and title.    
+
+**4. Data analysis **   
+We omitted the observations that had missing values to deal with missingness in the data and then checked the normality of predicted variables and predictors by plotting the data using `ggplot2`. If the variables needed some transformations, we used the boxcox transformation and other transformations like log. After that, we used the built-in funcion `lm` to fit the data to linear regression and checked the diagnostics with qqplot, bptest, and cooks distance by using `car`, `lmtest`, and `MASS` packages.   
+
+**5. Shiny app**    
+We used "shiny" app for displaying our project because we needed to prove some interactions with users for movie recommendation and data analysis. We used subset and regular expressions for recommendation of movies part and displaying the data part.   
+ 
+# Results
+
+![](/cloud/project/Movie_Analysis/images/1900s 1.png)
+![](/cloud/project/Movie_Analysis/images/1900s 2.png)
+![](/cloud/project/Movie_Analysis/images/1900s 3.png)
+![](/cloud/project/Movie_Analysis/images/bptest 1900s.png)
+![](/cloud/project/Movie_Analysis/images/qqplot 1900s.png)
+![](/cloud/project/Movie_Analysis/images/cooks 1900s.png)
+![](/cloud/project/Movie_Analysis/images/2000s 1.png)
+![](/cloud/project/Movie_Analysis/images/2000s 2.png)
+![](/cloud/project/Movie_Analysis/images/2000s 3.png)
+![](/cloud/project/Movie_Analysis/images/bptest 2000s.png)
+![](/cloud/project/Movie_Analysis/images/qqplot.png)
+![](/cloud/project/Movie_Analysis/images/cooks.png)
+
+# Discussion
+
+One thing we discovered during this project is that significant variables that affect how much a movie earns in the box office changes over time. During the 1900s, the significant variables that affect worldwide box office is production budget, trailer, franchise, and the movie company Paramount Pictures. If the production budget is high, a trailer prior to release, the movie is part of a franchise, or the movie is made by Paramount Pictures, then the movie will earn a lot of money in the worldwide box office. The qqplot for the 1900s linear regression model is very close to the linear line, this means that the residuals follow a normal distribution. In addition, the bptest for the 1900s showed that the p-value is less than .05. Thus, we can reject the null hypothesis that there are constant variance amongst the residuals. The cooks distance plot for the filtered data also shows that there are no apparent outliers.
+
+If we narrow the scope down to the present, from 2000 to 2021, we can see that the significant variables changed. Production budget and franchise continued to stay relevant in predicting the success of the movie in the box office, but new significant variables appeared. Live action movies, musical genres, movie duration, movies based on books and short stories, original screenplay now plays a bigger role in movie profits. In addition, Paramount Pictures is no longer a predictor in earnings in the box office, Marvel Studios now takes that spotlight. Now, let's look at the bptest from the 2000s movies data. The p-value is less than .05. Like the 1900s movie data, both dataset has no constant variance amongst the residuals. If we look at the qqplot of the 2000s movie data, there is a curve at the start and end away from the linear line. This indicates that the residuals of the 2000s movie data follows less of a normal distribution. However, the cooks distance plot also indicates that there may be a few outliers in the 2000s movie data.
+
+In todays cinematic market, if I was a ceo of a movie company, I would increase my production budget, create a new franchise for movies, create musical themed movies, increase movie duration, and create movies based on books and short stories. These variables are very important in predicting how well a movie is received in the box office globally. On the other hand, if I am a consumer trying to decide how to spend my hard earned money and 2 hours of my time, I would look for movies with franchises, high production budget, musical genre, long run time, and movies based on books and short stories. This would ensure that the movie that I watched is entertaining and has high quality. After all, everyone is willing to pay good money for something worthwhile. 
+
+# Conclusion
+Our team got the dataset by webscrapping <https://m.the-numbers.com/movies/>, so we could got many kinds of variables we wanted. We found many relationships among various variables and we especially focused on relationships with other variables and Worldwide Box office. There were some expected relationships. For example, money earned on Opening Weekend or Domestic Box office had a strong relationship with Worldwide Box Office. Also, there were some unexpected relationships. For instance, time has a negative impact on box office. Through shiny app, we could find out what changes as the specific variable changes. 
+
+\newpage
+
+# References
+
+- Parkhe, Viraj, and Bhaskar Biswas. "Sentiment Analysis of Movie Reviews: Finding Most Important Movie Aspects Using Driving Factors." Soft Computing 20, no. 9 (2015): 3373-379. 
+- Jo, Jung-Tae, and Sanghyunchoi. "Sentiment Analysis of Movie Review for Predicting Movie Rating." Management & Information Systems Review 34, no. 3 (2015): 161-77. 
+- 
+- Gilad Mishne, and Natalie Glance. "Predicting Movie Sales from Blogger Sentiment" 
+
+<!-- Remove the newpage break when the above text is no longer useful -->
+\newpage

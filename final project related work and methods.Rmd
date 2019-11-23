@@ -1,0 +1,42 @@
+---
+title: "Final Report"
+output: html_document
+---
+
+##Related work
+
+There were two related works on shiny and kaggle. 
+
+1. Shiny apps 
+The name of related work is "Movie explorer". This app enables us to find the movies based on the criterias that users select. The criteria includes minimum number of reviews, year released, minimum number of Oscar wins, dollars at Box Office, genre, director name contains, and cast name contains. This app shows the scatter plot based on these criterias with x-axis and y-axis that users select. The scatter plot is interactive with users, so that when we put the pointer on the dot, it shows the movie's name. This is the link to this application <https://shiny.rstudio.com/gallery/movie-explorer.html>. 
+
+2. Kaggle 
+There is the kernel about the movie dataset. The dataset contains metadata for all 45,000 movies listed in the Full MovieLens Dataset. The dataset consists of movies released on or before July 2017. Data points include cast, crew, plot keywords, budget, revenue, posters, release dates, languages, production companies, countries, TMDB vote counts and vote averages. This dataset also has files containing 26 million ratings from 270,000 users for all 45,000 movies. Ratings are on a scale of 1-5 and have been obtained from the official GroupLens website. Most of the kagglers made the film recommendation engine, using this datasets. The link to this kernel is <https://www.kaggle.com/rounakbanik/the-movies-dataset/kernels>.
+
+These two related works mainly focused on how to recommend movies to users. Of course we have worked on the recommendation of the movies, but we also have worked on finding the factors that affect the world wide box office. This is the one unique point of our project. 
+In addition, the data itself is different from these two dataset. Our dataset don't have the reviews of movies because our main focus is to predict world wide box office. Instead ours have the variables like production method, source, creative type, MPAA_rating, whether the trailer is broadcasted or not and whether the movie is franchise or not. This is the uniquness of our dataset. 
+Finally our statistical analysis is original. There is a part where we fit this dataset to linear regression. We've fit the whole dataset to regression first but we thought that the impact of predictors like genre, trailer, production method will change over time and so we enabled users to change the period so that users can examine for many kinds of periods and let them see the change of coefficients of each predictors. 
+
+
+##Methods 
+
+We used the following methods in each part. 
+
+1. Collecting data
+We webscraped this website <https://m.the-numbers.com> to collect the data. For webscraping we used the "rvest" package and extracted url, table and text from the website. 
+
+2. Data Cleaning
+The data we webscraped was unstractured and needed to be cleaned. First, because we had many duplications in the dataset, we had to delete the duplications. Second, some variables had unuseful comments and puncts in their columns. So I had to use regular expressions to remove unuseful comments and puncts from the observations by using "stringr". Finally some variables had many informations in one column. For example, release date had year and month variables in one column and production companies variable had many names of companies in one column. This is why, we had to extract the data that we only wanted by using "stringr" package. 
+
+3. Data Visualization 
+We used "ggplot2" package to plot the data. Sometimes we used subsets to get data that we only need. In addition we used word cloud to see which words appears lot in keyword and title. 
+
+4. Data analysis 
+We omitted the observations that had missing values to deal with missingness in the data and then checked the normality of predicted variables and predictors by plotting data using "ggplot2". If the variables needed some transformation, I used boxcox transformation and other transformations like log. After that, we used the built in funcion "lm" to fit the data to linear regression and checked the diagnostics like qqplot, bptest, and cooks distance by using "car", "lmtest", and "MASS" packages. 
+
+5. Shiny app 
+We used shiny app for desplaying our project because we needed some interactions with users for movie recommendation and data analysis. We used subset and regular expressions for recommendation of movies part and displaying the data part. 
+ 
+ 
+
+

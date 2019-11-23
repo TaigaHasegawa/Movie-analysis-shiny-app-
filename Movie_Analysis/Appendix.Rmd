@@ -1,0 +1,39 @@
+---
+title: "Appendix"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Figure 1: Description of Data
+```{r}
+movie = read.csv("movie.csv")
+colnames(movie)
+```
+- `X`: The unique identifiers of each observation  
+- `ReleaseDate`: When the movie released  
+- `Title`: The title of the movie  
+- `ProductionBudget`: The amount of money spent to produce the movie.   
+- `OpeningWeekend`: How much the movie earned during the weekend it released  
+- `DomesticBox.Office`: How much the movie earned in the United States  
+- `WorldwideBox.Office`: How much the movie earned globally  
+- `Trailer`: Whether a movie released a trailer or not. **1** = True, **0** = False  
+- `MPAA_Rating`: The MPAA Rating of the movie  
+- `Production_Method`: How the movie was made. eg live action, animation, etc.  
+- `Genre`: Genre of the movie  
+- `Running_Time`: The duration of the movie  
+- `Keywords`: Words that releate to the movie. eg, avatar is about aliens so alien is a keyword for avatar  
+- `Franchise`: Whether a movie has a franchise. **1** = true, **0** = false  
+- `Production_Companies`: The company that made the movie  
+- `Production_Countries`: The country the movie is produced in   
+- `Source`: The source of the movie. eg book, folktales, etc  
+- `Creative_Type`: The creative type of movie. eg: fiction, nonfiction, factual,etc.  
+- `Year`: The year the movie released  
+- `month`: the month the movie released  
+- All other variables (`warner`, `Columbia`, `Universal_Pictures`, `Walt_Disney_Pictures`,`Marvel_Studios`, `Paramount_Pictures`,`Century_Fox`, `Relativity_Media`, `DreamWorks_Pictures`, `New_Line_Cinema`, `Regency_Enterprises`, `Lionsgate`,`BBC_Films`, `StudioCanal`, `Working_Title_Films`, `Blumhouse`, `BFI`, `France`, `Cine_Plus`, `Participant_Media`, `Village_Roadshow_Productions`, `Metro_Goldwyn_Mayer_Pictures`) are production companies, **1** = the company made the movie, **0** = the company did not make that movie.  
+
+

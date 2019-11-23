@@ -1,0 +1,128 @@
+---
+title: "Data Analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+#down load the following packages
+library(MASS)
+library(ggplot2)
+library(car)
+library(lmtest)
+```
+
+
+```{r}
+#read movie data
+movie=read.csv("Movie_Analysis/movie.csv",stringsAsFactors = FALSE,check.names=FALSE)
+movie[,c(1,2,3,4,5,6,7,8,9,10,11,12,13,15,16,17,18)]
+#change the row name
+row.names(movie)=movie$X
+#delete the first column
+movie=movie[,-1]
+#delete the unuseful and unappropriate variables
+movie=movie[,c(-1,-2,-4,-5,-12,-14,-15)]
+#delete the observations that has NA values
+movie=na.omit(movie)
+movie[,1:18]
+```
+
+
+```{r}
+#"WorldwideBox Office" is skewed. We need some transformation
+ggplot(data=movie)+
+  aes(x=`WorldwideBox Office`)+
+  geom_histogram()
+```
+
+```{r}
+#used boxcox transformation
+bc = boxcox(fit, plotit = T)
+lambda=bc$x[which.max(bc$y)]
+y=movie$`WorldwideBox Office`
+movie$`WorldwideBox Office`=(y^lambda-1)/lambda
+#see the histogram again
+ggplot(data=movie)+
+  aes(x=`WorldwideBox Office`)+
+  geom_histogram()
+```
+
+
+```{r}
+#"ProductionBudget" also skewed
+ggplot(data=movie)+
+  aes(x=ProductionBudget)+
+  geom_histogram()
+```
+
+```{r}
+#used log transformation
+movie$ProductionBudget=log(movie$ProductionBudget)
+
+ggplot(data=movie)+
+  aes(x=ProductionBudget)+
+  geom_histogram()
+```
+
+```{r}
+#"Running_Time" looks nice
+ggplot(data=movie)+
+  aes(x=Running_Time)+
+  geom_histogram()
+```
+
+```{r}
+#Year is also skewed
+ggplot(data=movie)+
+  aes(x=Year)+
+  geom_histogram()
+```
+
+```{r}
+#used the following transformation
+minmax=function(x,shft=0.5){(x-min(x))/(max(x)-min(x))+shft}
+movie$Year=minmax(movie$Year)^11
+ggplot(data=movie)+
+  aes(x=Year)+
+  geom_histogram()
+```
+
+```{r}
+#fit the model 
+fit=lm(`WorldwideBox Office`~.,data=movie)
+summary(fit)
+```
+
+```{r}
+#check the qqplot
+qqPlot(fit, main="QQ Plot", col = "blue", pch = 19, cex = 1)
+```
+
+```{r}
+#check the constant variance 
+bptest(fit)
+```
+
+```{r}
+#check the outliers 
+plot(1:length(cooks.distance(fit)), cooks.distance(fit))
+```
+
+
+```{r message = FALSE}
+#Stepwise selection 
+x=step(fit, direction="both")
+x$coefficients
+```
+
+
+```{r}
+x=8
+6<=x&x<=10
+```
+
